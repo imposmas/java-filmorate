@@ -80,8 +80,8 @@ class FilmControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(film)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").
-                        value("Описание фильма не может превышать 200 символов"));
+                .andExpect(jsonPath("$.error")
+                        .value("Описание фильма не может превышать 200 символов"));
     }
 
     @Test
@@ -93,8 +93,8 @@ class FilmControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(film)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").
-                        value("Дата релиза — не раньше 28 декабря 1895 года"));
+                .andExpect(jsonPath("$.error")
+                        .value("Дата релиза — не раньше 28 декабря 1895 года"));
     }
 
     @Test
@@ -106,8 +106,8 @@ class FilmControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(film)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").
-                        value("Продолжительность фильма должна быть положительным числом"));
+                .andExpect(jsonPath("$.error")
+                        .value("Продолжительность фильма должна быть положительным числом"));
     }
 
     @Test
