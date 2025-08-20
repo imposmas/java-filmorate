@@ -20,10 +20,9 @@ public class FilmService {
     private final FilmStorageImpl filmStorageImpl;
     private final FilmValidator filmValidator;
     private final UserService userService;
-    public static final Comparator<Film> BY_LIKES_DESC = (f1, f2) -> {
-        int cmp = Integer.compare(f2.getLikes().size(), f1.getLikes().size());
-        return f1.getId().compareTo(f2.getId());
-    };
+    public static final Comparator<Film> BY_LIKES_DESC =
+            Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed()
+                    .thenComparing(Film::getId);
 
     public FilmService(FilmStorageImpl filmStorageImpl, FilmValidator filmValidator, UserService userService) {
         this.filmStorageImpl = filmStorageImpl;
