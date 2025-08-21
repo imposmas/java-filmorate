@@ -1,12 +1,14 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
 
+@Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -43,18 +45,21 @@ public class UserController {
     // ✅ добавление в друзья
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        log.debug("addFriend variables: id {}, friendId {}", id, friendId);
         userService.addFriend(id, friendId);
     }
 
     // ✅ удаление из друзей
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        log.debug("removeFriend variables: id {}, friendId {}", id, friendId);
         userService.removeFriend(id, friendId);
     }
 
     // ✅ список друзей
     @GetMapping("/{id}/friends")
     public Collection<User> getFriends(@PathVariable Long id) {
+        log.debug("getFriends variables: id {}", id);
         return userService.getFriends(id);
     }
 

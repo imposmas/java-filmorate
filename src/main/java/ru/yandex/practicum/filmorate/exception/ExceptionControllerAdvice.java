@@ -13,26 +13,31 @@ import java.util.Map;
 @RestControllerAdvice
 public class ExceptionControllerAdvice {
 
+    // code 409 for duplicates
     @ExceptionHandler(DuplicatedDataException.class)
     public ResponseEntity<ErrorResponse> handleDuplicatedDataException(DuplicatedDataException ex) {
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.CONFLICT); // 409
     }
 
+    // code 404 for non found objects
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.NOT_FOUND); // 404
     }
 
+    // code 400 for incorrect json
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex) {
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST); // 400
     }
 
+    //code 500 for others exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         return new ResponseEntity<>(new ErrorResponse("Unexpected error: " + ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR); // 500
     }
 
+    // 400 arguments handling
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();

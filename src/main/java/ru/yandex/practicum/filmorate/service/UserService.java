@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorageImpl;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.validator.UserValidator;
 
 import java.util.Collection;
@@ -16,20 +16,20 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    private final UserStorageImpl userStorageImpl;
+    private final UserStorage userStorage;
     private final UserValidator userValidator;
 
-    public UserService(UserStorageImpl userStorageImpl, UserValidator userValidator) {
-        this.userStorageImpl = userStorageImpl;
+    public UserService(UserStorage userStorage, UserValidator userValidator) {
+        this.userStorage = userStorage;
         this.userValidator = userValidator;
     }
 
     public Collection<User> findAll() {
-        return userStorageImpl.findAll();
+        return userStorage.findAll();
     }
 
     public User findById(Long id) {
-        return userStorageImpl.findById(id)
+        return userStorage.findById(id)
                 .orElseThrow(() -> new NotFoundException("Юзер с id = " + id + " не найден"));
     }
 
@@ -44,7 +44,7 @@ public class UserService {
             user.setName(user.getLogin());
         }
 
-        return userStorageImpl.save(user);
+        return userStorage.save(user);
     }
 
     public User update(User newUser) {
@@ -52,11 +52,11 @@ public class UserService {
                 newUser.getId(), newUser.getName(), newUser.getEmail(),
                 newUser.getLogin(), newUser.getBirthday());
 
-        userStorageImpl.findById(newUser.getId())
+        userStorage.findById(newUser.getId())
                 .orElseThrow(() -> new NotFoundException("Юзер с id = " + newUser.getId() + " не найден"));
 
         checkUserDuplicates(newUser);
-        return userStorageImpl.update(newUser);
+        return userStorage.update(newUser);
     }
 
     public void addFriend(Long userId, Long friendId) {
@@ -72,12 +72,14 @@ public class UserService {
     }
 
     public Collection<User> getFriends(Long userId) {
+        log.debug("getFriends parameters: userId {}", userId);
         return findById(userId).getFriends().stream()
                 .map(this::findById)
                 .collect(Collectors.toList());
     }
 
     public Collection<User> getCommonFriends(Long userId, Long otherId) {
+        log.debug("getCommonFriends parameters: userId {}, otherId {}", userId, otherId);
         Set<Long> commonIds = findById(userId).getFriends().stream()
                 .filter(findById(otherId).getFriends()::contains)
                 .collect(Collectors.toSet());
@@ -88,10 +90,10 @@ public class UserService {
     }
 
     private void checkUserDuplicates(User user) {
-        boolean duplicate = userStorageImpl.findByEmail(user.getEmail())
+        boolean duplicate = userStorage.findByEmail(user.getEmail())
                 .filter(existingUser -> !existingUser.getId().equals(user.getId()))
                 .isPresent();
-
+        log.debug("checkUserDuplicates:  duplicate {}", duplicate);
         if (duplicate) {
             throw new DuplicatedDataException("Этот имейл уже используется");
         }
