@@ -1,11 +1,8 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
-public abstract class InMemoryStorage<T> {
+public abstract class InMemoryStorage<T> implements Storage<T> {
     protected final Map<Long, T> storage = new HashMap<>();
     private long currentId = 0;
 
@@ -13,8 +10,9 @@ public abstract class InMemoryStorage<T> {
         return storage.values();
     }
 
-    public T findById(Long id) {
-        return storage.get(id);
+    @Override
+    public Optional<T> findById(Long id) {
+        return Optional.ofNullable(storage.get(id));
     }
 
     public T save(T entity) {

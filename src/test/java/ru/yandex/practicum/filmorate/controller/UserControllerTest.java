@@ -9,6 +9,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.yandex.practicum.filmorate.exception.ExceptionControllerAdvice;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.UserStorageImpl;
+import ru.yandex.practicum.filmorate.validator.UserValidator;
 
 import java.time.LocalDate;
 
@@ -21,16 +24,20 @@ class UserControllerTest {
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
+    private UserService userService;
+    private UserController controller;
 
     @BeforeEach
     void setUp() {
-        UserController controller = new UserController();
+        userService = new UserService(new UserStorageImpl(), new UserValidator());
+        controller = new UserController(userService);
+
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new ExceptionControllerAdvice())
                 .build();
 
         objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());  // Поддержка LocalDate
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     private User createValidUser() {
@@ -92,7 +99,6 @@ class UserControllerTest {
     void updateUser_existingUser_shouldUpdateSuccessfully() throws Exception {
         User user = createValidUser();
 
-        // Создаём пользователя
         String response = mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
@@ -104,7 +110,6 @@ class UserControllerTest {
         User createdUser = objectMapper.readValue(response, User.class);
         createdUser.setName("Updated Name");
 
-        // Обновляем пользователя
         mockMvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createdUser)))
@@ -143,6 +148,71 @@ class UserControllerTest {
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void addFriend_shouldAddMutualFriendship() throws Exception {
+        User user1 = createValidUser();
+        User user2 = createValidUser();
+        user2.setEmail("second@example.com");
+        user2.setLogin("secondLogin");
+
+        String response1 = mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user1)))
+                .andReturn().getResponse().getContentAsString();
+        String response2 = mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user2)))
+                .andReturn().getResponse().getContentAsString();
+
+        User u1 = objectMapper.readValue(response1, User.class);
+        User u2 = objectMapper.readValue(response2, User.class);
+
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", u1.getId(), u2.getId()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/users/{id}/friends", u1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(u2.getId()));
+
+        mockMvc.perform(get("/users/{id}/friends", u2.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(u1.getId()));
+    }
+
+    @Test
+    void removeFriend_shouldRemoveMutualFriendship() throws Exception {
+        User user1 = createValidUser();
+        User user2 = createValidUser();
+        user2.setEmail("second@example.com");
+        user2.setLogin("secondLogin");
+
+        String response1 = mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user1)))
+                .andReturn().getResponse().getContentAsString();
+        String response2 = mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user2)))
+                .andReturn().getResponse().getContentAsString();
+
+        User u1 = objectMapper.readValue(response1, User.class);
+        User u2 = objectMapper.readValue(response2, User.class);
+
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", u1.getId(), u2.getId()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/users/{id}/friends/{friendId}", u1.getId(), u2.getId()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/users/{id}/friends", u1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        mockMvc.perform(get("/users/{id}/friends", u2.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 
 }
