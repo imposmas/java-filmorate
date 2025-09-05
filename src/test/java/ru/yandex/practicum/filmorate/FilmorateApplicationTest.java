@@ -31,4 +31,4 @@ class FilmorateApplicationTest {
                         assertThat(user).hasFieldOrPropertyWithValue("id", 1L)
                 );
     }
-} 
+}
