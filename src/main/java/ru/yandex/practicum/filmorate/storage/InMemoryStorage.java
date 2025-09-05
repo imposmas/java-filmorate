@@ -1,7 +1,10 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import ru.yandex.practicum.filmorate.dal.storage.Storage;
+
 import java.util.*;
 
+@Deprecated
 public abstract class InMemoryStorage<T> implements Storage<T> {
     protected final Map<Long, T> storage = new HashMap<>();
     private long currentId = 0;

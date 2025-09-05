@@ -21,5 +21,7 @@ public class Film {
     @JsonFormat(pattern = "yyyy-MM-dd")
     LocalDate releaseDate;
     int duration;
+    Long mpaRating;
     Set<Long> likes = new HashSet<>();
+    Set<Long> genres = new HashSet<>();
 }
