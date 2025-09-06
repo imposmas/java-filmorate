@@ -8,6 +8,14 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class MpaRating {
-    Long id;
-    String name;
+    private Long id;
+    private String name;
+
+    public MpaRating() {
+    }
+
+    public MpaRating(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }

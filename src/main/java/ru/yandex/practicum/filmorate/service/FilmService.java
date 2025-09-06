@@ -13,6 +13,8 @@ import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.validator.FilmValidator;
 
 import java.util.*;
@@ -131,12 +133,12 @@ public class FilmService {
     /**
      * Проверяет, существует ли MPA с указанным ID.
      *
-     * @param mpaId идентификатор MPA
+     * @param mpa идентификатор MPA
      * @throws NotFoundException если MPA не найден
      */
-    private void validateMpaExists(Long mpaId) {
-        if (mpaId != null && !mpaRatingStorage.existsById(mpaId)) {
-            throw new NotFoundException("MPA rating with id = " + mpaId + " not found");
+    private void validateMpaExists(MpaRating mpa) {
+        if (mpa != null && !mpaRatingStorage.existsById(mpa.getId())) {
+            throw new NotFoundException("MPA rating with id = " + mpa.getId() + " not found");
         }
     }
 
@@ -146,10 +148,11 @@ public class FilmService {
      * @param genres множество ID жанров
      * @throws NotFoundException если какой-либо жанр не найден
      */
-    private void validateGenres(Set<Long> genres) {
-        for (Long genreId : genres) {
-            if (genreId != null && !genreStorage.existsById(genreId)) {
-                throw new NotFoundException("Genre with id = " + genreId + " not found");
+
+    private void validateGenres(Set<Genre> genres) {
+        for (Genre genre : genres) {
+            if (genre != null && !genreStorage.existsById(genre.getId())) {
+                throw new NotFoundException("Genre with id = " + genre.getId() + " not found");
             }
         }
     }

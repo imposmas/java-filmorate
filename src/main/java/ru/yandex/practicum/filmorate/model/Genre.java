@@ -8,6 +8,13 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class Genre {
-    Long id;
-    String name;
+    private Long id;
+    private String name;
+
+    public Genre() {}  // <- пустой конструктор для RowMapper
+
+    public Genre(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }

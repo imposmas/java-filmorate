@@ -1,14 +1,10 @@
 package ru.yandex.practicum.filmorate.dal.storage;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -17,55 +13,19 @@ import java.util.Set;
 @Repository("userDbStorage")
 public class UserDbStorage extends AbstractDbStorage<User> implements UserStorage {
 
-    private final JdbcTemplate jdbcTemplate;
-
     public UserDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-    @Override
-    public Collection<User> findAll() {
-        var users = jdbcTemplate.query(
-                "SELECT * FROM USERS",
-                new UserRowMapper()
-        );
-
-        users.forEach(this::loadFriends);
-        return users;
-    }
-
-    @Override
-    public Optional<User> findById(Long id) {
-        var userOpt = jdbcTemplate.query(
-                "SELECT * FROM USERS WHERE ID = ?",
-                new UserRowMapper(),
-                id
-        ).stream().findFirst();
-
-        userOpt.ifPresent(this::loadFriends);
-        return userOpt;
+        super(jdbcTemplate, "USERS", "ID", new UserRowMapper());
     }
 
     @Override
     public User save(User user) {
-        String sql = "INSERT INTO users (name, email, login, birthday) VALUES (?, ?, ?, ?)";
-
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, user.getName());
-            ps.setString(2, user.getEmail());
-            ps.setString(3, user.getLogin());
-            ps.setObject(4, user.getBirthday());
-            return ps;
-        }, keyHolder);
-
-        Long id = keyHolder.getKey().longValue();
+        Long id = insertAndReturnId(
+                "INSERT INTO USERS (NAME, EMAIL, LOGIN, BIRTHDAY) VALUES (?, ?, ?, ?)",
+                user.getName(), user.getEmail(), user.getLogin(), user.getBirthday()
+        );
         user.setId(id);
-
         return user;
     }
-
 
     @Override
     public User update(User user) {
@@ -73,24 +33,25 @@ public class UserDbStorage extends AbstractDbStorage<User> implements UserStorag
             throw new IllegalArgumentException("User not found with id " + user.getId());
         }
 
-        String sql = "UPDATE USERS SET NAME=?, EMAIL=?, LOGIN=?, BIRTHDAY=? WHERE ID=?";
-        jdbcTemplate.update(sql,
-                user.getName(),
-                user.getEmail(),
-                user.getLogin(),
-                user.getBirthday(),
-                user.getId()
+        jdbcTemplate.update(
+                "UPDATE USERS SET NAME=?, EMAIL=?, LOGIN=?, BIRTHDAY=? WHERE ID=?",
+                user.getName(), user.getEmail(), user.getLogin(), user.getBirthday(), user.getId()
         );
-
         return user;
     }
 
     @Override
-    public boolean existsById(Long id) {
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM USERS WHERE ID=?", Integer.class, id
-        );
-        return count != null && count > 0;
+    public Collection<User> findAll() {
+        var users = super.findAll();
+        users.forEach(this::loadFriends);
+        return users;
+    }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        var userOpt = super.findById(id);
+        userOpt.ifPresent(this::loadFriends);
+        return userOpt;
     }
 
     @Override

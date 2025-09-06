@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -18,9 +19,10 @@ public class UpdateFilmRequest {
 
     private LocalDate releaseDate;
 
-    private int duration; // если 0, значит не обновляем
+    private int duration;
 
-    private Long mpaRating;
+    @JsonProperty("mpa")
+    private MpaRatingDto mpaRating;
 
-    private Set<Long> genres;
+    private Set<GenreDto> genres;
 }

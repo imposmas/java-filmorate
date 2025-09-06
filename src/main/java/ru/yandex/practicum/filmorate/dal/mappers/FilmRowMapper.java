@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.dal.mappers;
 
 import org.springframework.jdbc.core.RowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -22,8 +23,11 @@ public class FilmRowMapper implements RowMapper<Film> {
             film.setReleaseDate(releaseDate.toLocalDate());
         }
 
-        long mpaRating = resultSet.getLong("MPA_RATING");
-        film.setMpaRating(resultSet.wasNull() ? null : mpaRating);
+        long mpaId = resultSet.getLong("MPA_ID");
+        MpaRating mpa = new MpaRating();
+        mpa.setId(mpaId);
+        mpa.setName(resultSet.getString("MPA_NAME"));
+        film.setMpaRating(mpa);
 
         return film;
     }

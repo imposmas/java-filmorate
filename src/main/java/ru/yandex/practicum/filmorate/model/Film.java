@@ -21,7 +21,7 @@ public class Film {
     @JsonFormat(pattern = "yyyy-MM-dd")
     LocalDate releaseDate;
     int duration;
-    Long mpaRating;
+    MpaRating mpaRating;       // теперь объект
+    Set<Genre> genres = new HashSet<>(); // теперь Set<Genre>
     Set<Long> likes = new HashSet<>();
-    Set<Long> genres = new HashSet<>();
 }

@@ -8,6 +8,8 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -45,8 +47,8 @@ class FilmDbStorageTest {
         film1.setDescription("Description One");
         film1.setReleaseDate(LocalDate.of(2000, 1, 1));
         film1.setDuration(120);
-        film1.setMpaRating(1L); // допустим, G
-        film1.setGenres(Set.of(1L, 2L)); // Комедия + Драма
+        film1.setMpaRating(new MpaRating(1L, "G")); // объект MPA
+        film1.setGenres(Set.of(new Genre(1L, "Comedy"), new Genre(2L, "Drama"))); // жанры как объекты
         film1 = filmStorage.save(film1);
 
         film2 = new Film();
@@ -54,7 +56,7 @@ class FilmDbStorageTest {
         film2.setDescription("Description Two");
         film2.setReleaseDate(LocalDate.of(2010, 5, 5));
         film2.setDuration(150);
-        film2.setMpaRating(2L); // PG
+        film2.setMpaRating(new MpaRating(2L, "PG"));
         film2 = filmStorage.save(film2);
     }
 
@@ -69,8 +71,10 @@ class FilmDbStorageTest {
     void testFindById() {
         Optional<Film> filmOpt = filmStorage.findById(film1.getId());
         assertThat(filmOpt).isPresent();
-        assertThat(filmOpt.get().getName()).isEqualTo("Film One");
-        assertThat(filmOpt.get().getGenres()).contains(1L, 2L);
+        Film film = filmOpt.get();
+        assertThat(film.getName()).isEqualTo("Film One");
+        assertThat(film.getGenres()).extracting("id").contains(1L, 2L);
+        assertThat(film.getMpaRating().getId()).isEqualTo(1L);
     }
 
     @Test
@@ -80,24 +84,27 @@ class FilmDbStorageTest {
         newFilm.setDescription("Desc 3");
         newFilm.setReleaseDate(LocalDate.of(2020, 3, 3));
         newFilm.setDuration(90);
-        newFilm.setMpaRating(3L); // PG-13
-        newFilm.setGenres(Set.of(3L)); // Мультфильм
+        newFilm.setMpaRating(new MpaRating(3L, "PG-13"));
+        newFilm.setGenres(Set.of(new Genre(3L, "Animation")));
 
         Film savedFilm = filmStorage.save(newFilm);
 
         assertThat(savedFilm.getId()).isNotNull();
-        assertThat(filmStorage.findById(savedFilm.getId())).isPresent();
+        Film loaded = filmStorage.findById(savedFilm.getId()).get();
+        assertThat(loaded.getGenres()).extracting("id").contains(3L);
+        assertThat(loaded.getMpaRating().getId()).isEqualTo(3L);
     }
 
     @Test
     void testUpdate() {
         film1.setName("Updated Film One");
-        film1.setGenres(Set.of(4L)); // Триллер
+        film1.setGenres(Set.of(new Genre(4L, "Thriller")));
 
         Film updatedFilm = filmStorage.update(film1);
 
         assertThat(updatedFilm.getName()).isEqualTo("Updated Film One");
-        assertThat(filmStorage.findById(film1.getId()).get().getGenres()).contains(4L);
+        assertThat(filmStorage.findById(film1.getId()).get().getGenres())
+                .extracting("id").contains(4L);
     }
 
     @Test
@@ -118,23 +125,19 @@ class FilmDbStorageTest {
     @Test
     void testAddLike() {
         filmStorage.addLike(film1.getId(), user.getId());
-
-        Film likedFilm = filmStorage.findById(film1.getId()).get();
-        assertThat(likedFilm.getLikes()).contains(user.getId());
+        assertThat(filmStorage.findById(film1.getId()).get().getLikes()).contains(user.getId());
     }
 
     @Test
     void testRemoveLike() {
         filmStorage.addLike(film1.getId(), user.getId());
         filmStorage.removeLike(film1.getId(), user.getId());
-
-        Film likedFilm = filmStorage.findById(film1.getId()).get();
-        assertThat(likedFilm.getLikes()).doesNotContain(user.getId());
+        assertThat(filmStorage.findById(film1.getId()).get().getLikes()).doesNotContain(user.getId());
     }
 
     @Test
     void testGenresPersistedAndLoaded() {
         Film film = filmStorage.findById(film1.getId()).get();
-        assertThat(film.getGenres()).contains(1L, 2L);
+        assertThat(film.getGenres()).extracting("id").contains(1L, 2L);
     }
 }
