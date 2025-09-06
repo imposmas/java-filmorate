@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
@@ -19,53 +21,50 @@ public class UserController {
         this.userService = userService;
     }
 
+    // ------------------------------- Users --------------------------------------
+
     @GetMapping
-    public Collection<User> findAll() {
+    public Collection<UserDto> findAll() {
         return userService.findAll();
     }
 
-    // ✅ найти юзера по айди
     @GetMapping("/{id}")
-    public User findById(@PathVariable Long id) {
+    public UserDto findById(@PathVariable Long id) {
         return userService.findById(id);
     }
 
-    // ✅ создать юзера
     @PostMapping
-    public User create(@Valid @RequestBody User user) {
-        return userService.create(user);
+    public UserDto create(@Valid @RequestBody NewUserRequest request) {
+        return userService.create(request);
     }
 
-    // ✅ обновить юзера
     @PutMapping
-    public User update(@Valid @RequestBody User newUser) {
-        return userService.update(newUser);
+    public UserDto update(@Valid @RequestBody UpdateUserRequest request) {
+        return userService.update(request);
     }
 
-    // ✅ добавление в друзья
+    // ------------------------------- Friends -----------------------------------
+
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.debug("addFriend variables: id {}, friendId {}", id, friendId);
         userService.addFriend(id, friendId);
     }
 
-    // ✅ удаление из друзей
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.debug("removeFriend variables: id {}, friendId {}", id, friendId);
         userService.removeFriend(id, friendId);
     }
 
-    // ✅ список друзей
     @GetMapping("/{id}/friends")
-    public Collection<User> getFriends(@PathVariable Long id) {
+    public Collection<UserDto> getFriends(@PathVariable Long id) {
         log.debug("getFriends variables: id {}", id);
         return userService.getFriends(id);
     }
 
-    // ✅ список общих друзей
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Collection<User> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
+    public Collection<UserDto> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
         return userService.getCommonFriends(id, otherId);
     }
 }

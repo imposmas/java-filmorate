@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -19,26 +21,33 @@ public class FilmController {
         this.filmService = filmService;
     }
 
+    //-------------------------------Films ----------------------------
     @GetMapping
-    public Collection<Film> findAll() {
+    public Collection<FilmDto> findAll() {
         return filmService.findAll();
     }
 
     @GetMapping("/{id}")
-    public Film findById(@PathVariable Long id) {
+    public FilmDto findById(@PathVariable Long id) {
         return filmService.findById(id);
     }
 
     @PostMapping
-    public Film create(@Valid @RequestBody Film film) {
-        return filmService.create(film);
+    public FilmDto create(@Valid @RequestBody NewFilmRequest request) {
+        return filmService.create(request);
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody Film newFilm) {
-        return filmService.update(newFilm);
+    public FilmDto update(@Valid @RequestBody UpdateFilmRequest request) {
+        return filmService.update(request);
     }
 
+    @GetMapping("/popular")
+    public Collection<FilmDto> getPopular(@RequestParam(defaultValue = "10") int count) {
+        return filmService.getPopularFilms(count);
+    }
+
+    // ------------------------------ Likes -----------------
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable Long id, @PathVariable Long userId) {
         log.debug("addLike variables: id {}, userId {}", id, userId);
@@ -50,10 +59,4 @@ public class FilmController {
         log.debug("removeLike variables: id {}, userId {}", id, userId);
         filmService.removeLike(id, userId);
     }
-
-    @GetMapping("/popular")
-    public Collection<Film> getPopular(@RequestParam(defaultValue = "10") int count) {
-        return filmService.getPopularFilms(count);
-    }
-
 }
